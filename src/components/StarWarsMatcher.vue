@@ -1,8 +1,9 @@
 <template>
   <div class="p-6 max-w-5xl mx-auto text-white bg-gray-900 rounded-2xl shadow-lg">
     <h1 class="text-3xl font-bold text-yellow-400 mb-6 text-center">
-      ⭐ Star Wars Taste Matcher
+      ⭐ Taste Wars
     </h1>
+    <h3>This is a fan-made project. Star Wars® is a trademark of Lucasfilm Ltd. This app is not affiliated with or endorsed by Lucasfilm or Disney.</h3>
 
     <!-- Rating Form -->
     <div class="mb-8">
