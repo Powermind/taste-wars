@@ -3,7 +3,13 @@
     <h1 class="text-3xl font-bold text-yellow-400 mb-6 text-center">
       ⭐ Taste Wars
     </h1>
-    <h3>This is a fan-made project. Star Wars® is a trademark of Lucasfilm Ltd. This app is NOT affiliated with or endorsed by Lucasfilm or Disney.</h3>
+    <h3><p class="disclaimer">
+  This is a fan-made project created purely for fun and educational purposes. 
+  Star Wars® is a trademark of Lucasfilm Ltd. All rights belong to their respective owners. 
+  This app is <strong>not affiliated with, endorsed by, or officially connected to</strong> Lucasfilm, Disney, or any related person, entity, or deity in this galaxy or any other. 
+  May the taste be with you!
+    </p>
+    </h3>
     <!-- Rating Form -->
     <div class="section-box">
       <div class="flex items-center justify-between mb-2 instructions-wrapper">
@@ -340,6 +346,12 @@ h2, h3 {
   font-weight: 600;
   color: #facc15;
   margin: 0 0 0.5rem 0;
+}
+
+.disclaimer {
+  font-weight: 400;
+  font-size: 1rem;
+  text-align: center;
 }
 
 /* === SECTION BOXES === */
