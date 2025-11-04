@@ -1,14 +1,14 @@
 <template>
-  <div class="p-6 max-w-5xl mx-auto text-white bg-gray-900 rounded-2xl shadow-lg">
+  <div class="container">
     <h1 class="text-3xl font-bold text-yellow-400 mb-6 text-center">
       ⭐ Taste Wars
     </h1>
-    <h3>This is a fan-made project. Star Wars® is a trademark of Lucasfilm Ltd. This app is not affiliated with or endorsed by Lucasfilm or Disney.</h3>
-
+    <h3>This is a fan-made project. Star Wars® is a trademark of Lucasfilm Ltd. This app is NOT affiliated with or endorsed by Lucasfilm or Disney.</h3>
     <!-- Rating Form -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between mb-2">
+    <div class="section-box">
+      <div class="flex items-center justify-between mb-2 instructions-wrapper">
         <h2 class="text-xl font-semibold">Rate Each Movie/Series</h2>
+        <p>If you have not seen a movie or series, just leave it at 0 and it will be excluded from your taste code.</p>
         <button
           @click="randomizeRatings"
           class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-3 py-1 rounded-xl text-sm"
@@ -47,20 +47,40 @@
     </div>
 
     <!-- Your Code -->
-    <div class="mt-8 bg-gray-800 p-4 rounded-xl text-center">
-      <p class="text-sm text-gray-400">Your Taste Code:</p>
-      <p class="font-mono text-xl text-yellow-400 break-all">{{ myCode }}</p>
+    <div class="section-box text-center flex-row-wrapper">
+      <div class="mycode-wrapper">
+        <p class="label">Your Taste Code:</p>
+        <p class="code">{{ myCode }}</p>
+        <button @click="copyCode" class="yellow-btn">Copy My Code</button>
+      </div>
 
+      <div class="share-wrapper">
+        <p class="label">Share Your Taste:</p>
+        <p class="code break-all">{{ shareLink }}</p>
+        <button @click="shareMyTaste" class="yellow-btn">Share My Taste (Copy Link)</button>
+      </div>
+    </div>
+
+
+    <!-- Load Your Own Code -->
+    <div class="section-box text-center">
+      <h3 class="text-lg font-semibold mb-2 text-yellow-400">Load Your Own Ratings</h3>
+      <input
+        v-model="myImportCode"
+        placeholder="Paste your code here..."
+        class="w-full px-3 py-2 rounded-xl text-black mb-3"
+      />
       <button
-        @click="copyCode"
-        class="mt-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
+        @click="loadMyCode"
+        class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
       >
-        Copy My Code
+        Load My Ratings
       </button>
     </div>
 
+
     <!-- Compare Code Input -->
-    <div class="mt-8 bg-gray-800 p-4 rounded-xl text-center">
+    <div class="section-box text-center">
       <h3 class="text-lg font-semibold mb-2 text-yellow-400">Compare with a Friend</h3>
       <input
         v-model="friendCode"
@@ -76,7 +96,7 @@
     </div>
 
     <!-- Compatibility Result -->
-    <div v-if="matchResult" class="mt-8 text-center">
+    <div v-if="matchResult" class="section-box text-center">
       <h3 class="text-2xl font-bold text-green-400">
         Match: {{ (matchResult.similarity * 100).toFixed(1) }}%
       </h3>
@@ -85,7 +105,7 @@
       </p>
 
       <!-- ✅ Radar Chart -->
-      <div class="mt-6 bg-gray-800 p-4 rounded-xl">
+      <div class="section-box">
         <Radar v-if="chartReady" :data="chartData" :options="chartOptions" />
       </div>
     </div>
@@ -118,6 +138,7 @@ const ratings = ref(Object.fromEntries(STAR_WARS_TITLES.map(t => [t, 0])));
 const friendCode = ref("");
 const matchResult = ref(null);
 const chartReady = ref(false);
+const myImportCode = ref("");
 
 // live encoded code
 const myCode = computed(() => encodeRatings(ratings.value, STAR_WARS_TITLES));
@@ -155,6 +176,25 @@ async function copyCode() {
     console.error("Failed to copy:", err);
   }
 }
+
+const shareLink = computed(() => {
+  const baseUrl = window.location.origin + window.location.pathname;
+  return `${baseUrl}?taste_v1=${encodeURIComponent(myCode.value)}`;
+});
+
+async function shareMyTaste() {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = `${baseUrl}?taste_v1=${encodeURIComponent(myCode.value)}`;
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    alert("Your shareable link has been copied to the clipboard!");
+  } catch (err) {
+    console.error("Failed to copy link:", err);
+    alert("Couldn't copy the link. You can copy it manually:\n" + shareUrl);
+  }
+}
+
 
 function compareCodes() {
   if (!friendCode.value.trim()) return alert("Please paste a friend's code.");
@@ -220,8 +260,25 @@ function randomizeRatings() {
   ratings.value = newRatings;
 
   // ✅ myCode updates automatically since it's computed
-  alert("Random ratings generated!");
+  // alert("Random ratings generated!");
 }
+
+function loadMyCode() {
+  if (!myImportCode.value.trim()) {
+    alert("Please paste a valid code.");
+    return;
+  }
+
+  try {
+    const decoded = decodeRatings(myImportCode.value.trim(), STAR_WARS_TITLES);
+    ratings.value = { ...decoded };
+    alert("Your ratings have been loaded!");
+  } catch (err) {
+    console.error(err);
+    alert("Invalid code. Please check and try again.");
+  }
+}
+
 
 function resetRatings() {
   ratings.value = Object.fromEntries(STAR_WARS_TITLES.map(t => [t, 0]));
@@ -236,10 +293,270 @@ onMounted(() => {
   }
 });
 </script>
-
 <style scoped>
-input[type="range"] {
-  width: 100%;
-  cursor: pointer;
+/* === GLOBAL BACKGROUND === */
+body {
+  background: radial-gradient(circle at top, #0a0a0f 0%, #000 80%);
+  background-attachment: fixed;
+  color: #fdfdfd;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
 }
+
+/* === MAIN CONTAINER === */
+.container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 2rem auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* === HEADINGS === */
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  margin: 0 0 1rem 0;
+}
+
+h2, h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #facc15;
+  margin: 0 0 0.5rem 0;
+}
+
+/* === SECTION BOXES === */
+.section-box {
+  background-color: rgba(30, 30, 30, 0.7);
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.section-box:hover {
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+}
+
+/* === RATING ITEMS === */
+.rating-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .rating-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.rating-item label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="range"] {
+  flex-grow: 1;
+  cursor: pointer;
+  accent-color: #facc15; /* yellow */
+}
+
+.slider-container span {
+  width: 2rem;
+  text-align: right;
+  color: #fbbf24;
+}
+
+/* === TEXT INPUTS === */
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  color: #000;
+}
+
+/* === BUTTONS === */
+button {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button.yellow {
+  background-color: #facc15;
+  color: #111;
+}
+
+button.dark {
+  background-color: #444;
+  color: #facc15;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+button.glow {
+  background: linear-gradient(90deg, #ffe66d, #ffcc00);
+  color: #111;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 15px rgba(255, 230, 109, 0.4);
+}
+
+button.glow:hover {
+  box-shadow: 0 0 25px rgba(255, 230, 109, 0.8);
+  transform: translateY(-1px);
+}
+
+/* === MATCH RESULT === */
+.match-result {
+  text-align: center;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-percent {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+  text-shadow: 0 0 15px rgba(255, 255, 100, 0.5);
+}
+
+.confidence {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+/* === RADAR CHART CONTAINER === */
+.chart-container {
+  margin-top: 1rem;
+}
+
+/* === ANIMATED STAR BACKGROUND === */
+@keyframes stars {
+  from { background-position: 0 0; }
+  to { background-position: 10000px 10000px; }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 200%;
+  height: 200%;
+  background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+  opacity: 0.2;
+  animation: stars 200s linear infinite;
+  z-index: -1;
+}
+
+.instructions-wrapper {
+  text-align: center;
+}
+
+button {
+  margin: 5px;
+}
+
+/* Flex container for side-by-side wrappers */
+.flex-row-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 2rem; /* space between the two boxes */
+  flex-wrap: wrap; /* wrap on smaller screens */
+}
+
+/* Inner wrapper styling */
+.mycode-wrapper,
+.share-wrapper {
+  flex: 1 1 45%; /* grow/shrink and default 45% width */
+  background-color: rgba(30, 30, 30, 0.7);
+  padding: 1rem;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 5px 10px rgba(255, 215, 0, 0.1);
+}
+
+/* Labels and code styling */
+.label {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 0.3rem;
+}
+
+.code {
+  font-family: monospace;
+  font-size: 1.1rem;
+  color: #facc15;
+  word-break: break-all;
+  margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.yellow-btn {
+  background-color: #facc15;
+  color: #111;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.yellow-btn:hover {
+  background-color: #ffea00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .mycode-wrapper,
+  .share-wrapper {
+    flex: 1 1 100%; /* stack vertically on small screens */
+  }
+}
+
+
 </style>
+
+
