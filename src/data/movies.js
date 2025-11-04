@@ -25,8 +25,10 @@ export const STAR_WARS_TITLES = [
   "Andor",
   "Ahsoka",
   "The Acolyte",
+  "Skeleton Crew",
 
   // 🧒 Animated Series (optional)
-  "Star Wars: The Clone Wars",
-  "Star Wars Rebels"
+  "The Clone Wars",
+  "Rebels",
+  "The Bad Batch"
 ];
