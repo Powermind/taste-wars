@@ -33,7 +33,7 @@
       <div
         v-for="(title, index) in STAR_WARS_TITLES"
         :key="index"
-        class="flex flex-col sm:flex-row items-center justify-between mb-3 border-b border-gray-700 pb-1"
+        class="flex flex-col sm:flex-row items-center justify-between mb-3 border-b border-gray-700 pb-1 rating-wrapper"
       >
         <label :for="'rating-' + index" class="w-full sm:w-1/2 font-semibold mb-1 sm:mb-0">
           {{ title }}
@@ -577,6 +577,11 @@ button {
   width: 100%;
   text-align: center;
   font-size: 10px;
+}
+
+.rating-wrapper {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 /* Responsive adjustments */
