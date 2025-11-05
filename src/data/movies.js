@@ -15,8 +15,8 @@ export const STAR_WARS_TITLES = [
   "The Rise of Skywalker",
 
   // 💫 Anthology Films
-  "Rogue One: A Star Wars Story",
-  "Solo: A Star Wars Story",
+  "Rogue One",
+  "Solo",
 
   // 📺 Official Live-Action Series
   "The Mandalorian",

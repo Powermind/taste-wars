@@ -16,8 +16,16 @@
         <h2 class="text-xl font-semibold">Rate Each Movie/Series</h2>
         <p>If you have not seen a movie or series, just leave it at 0 and it will be excluded from your taste code.</p>
         <p class="description">The app compares your Star Wars ratings with a friend’s by looking only at the movies and series that both of you have rated. It measures how similar your ratings are, giving more weight when you’ve both rated more titles in common. The result is a percentage that shows how closely your tastes match, along with a confidence score that reflects how many titles were compared. Unseen titles (rating 0) are ignored in the calculation.</p>
-        <p class="tech-description">The match between two users is calculated using a Normalized Weighted Cosine Similarity. Only titles that both users have rated (ratings greater than 0) are considered, while unseen titles are ignored. First, each user’s ratings are mean-centered to remove individual bias. Then, a standard cosine similarity is computed between the vectors of mutually rated titles, with any negative similarity clipped to zero. To account for the number of common ratings, the similarity is weighted by the fraction of overlap relative to the total set of rated titles, producing a confidence score. The final similarity is a value between 0 and 1, with higher values indicating more closely aligned tastes.</p>
-        <button
+        <p class="tech-description">
+  <strong>How your Taste Match is calculated:</strong><br>
+  Taste Wars uses a custom <em>Hybrid Normalized Weighted Cosine Similarity</em> to compare how closely your ratings align with someone else's.
+  Ratings of <code>0</code> (unseen) are ignored, and only titles rated by both users are compared.<br><br>
+  First, both rating sets are <em>mean-centered</em> to measure how similarly you like or dislike things relative to your own average — not just how high you rate overall.
+  Then, a small part of the score comes from direct (raw) rating similarity to account for similar rating scales.<br><br>
+  The two parts are combined (70% pattern, 30% scale), and the result is weighted by how many titles you both rated — your <strong>confidence</strong> level.
+  The final match percentage reflects both how aligned your tastes are and how much overlap you share.
+</p>
+<button
           @click="randomizeRatings"
           class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-3 py-1 rounded-xl text-sm"
         >
@@ -33,7 +41,7 @@
       <div
         v-for="(title, index) in STAR_WARS_TITLES"
         :key="index"
-        class="flex flex-col sm:flex-row items-center justify-between mb-3 border-b border-gray-700 pb-1 rating-wrapper"
+        class="flex flex-col sm:flex-row items-center justify-between border-b border-gray-700 rating-wrapper"
       >
         <label :for="'rating-' + index" class="w-full sm:w-1/2 font-semibold mb-1 sm:mb-0">
           {{ title }}
@@ -56,13 +64,13 @@
 
     <!-- Your Code -->
     <div class="section-box text-center flex-row-wrapper">
-      <div class="mycode-wrapper">
+      <div class="inner-box">
         <p class="label">Your Taste Code:</p>
         <p class="code">{{ myCode }}</p>
         <button @click="copyCode" class="yellow-btn">Copy My Code</button>
       </div>
 
-      <div class="share-wrapper">
+      <div class="inner-box">
         <p class="label">Share Your Taste:</p>
         <p class="code break-all">{{ shareLink }}</p>
         <button @click="shareMyTaste" class="yellow-btn">Share My Taste (Copy Link)</button>
@@ -70,37 +78,36 @@
     </div>
 
 
-    <!-- Load Your Own Code -->
-    <div class="section-box text-center">
-      <h3 class="text-lg font-semibold mb-2 text-yellow-400">Load Your Own Ratings</h3>
-      <input
-        v-model="myImportCode"
-        placeholder="Paste your code here..."
-        class="w-full px-3 py-2 rounded-xl text-black mb-3"
-      />
-      <button
-        @click="loadMyCode"
-        class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
-      >
-        Load My Ratings
-      </button>
-    </div>
-
-
-    <!-- Compare Code Input -->
-    <div class="section-box text-center">
-      <h3 class="text-lg font-semibold mb-2 text-yellow-400">Compare with a Friend</h3>
-      <input
-        v-model="friendCode"
-        placeholder="Paste your friend's code..."
-        class="w-full px-3 py-2 rounded-xl text-black mb-3"
-      />
-      <button
-        @click="compareCodes"
-        class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
-      >
-        Compare
-      </button>
+    <!-- Compare with friend and load Your Own Code -->
+    <div class="section-box text-center compare-load-wrapper">
+      <div class="inner-box">
+        <h3 class="">Compare with a Friend</h3>
+        <input
+          v-model="friendCode"
+          placeholder="Paste your friend's code..."
+          class="w-full px-3 py-2 rounded-xl text-black mb-3"
+        />
+        <button
+          @click="compareCodes"
+          class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
+        >
+          Compare
+        </button>
+        </div>
+      <div class="inner-box">
+        <h3 class="text-lg font-semibold mb-2 text-yellow-400">Load Your Own Ratings</h3>
+        <input
+          v-model="myImportCode"
+          placeholder="Paste your code here..."
+          class="w-full px-3 py-2 rounded-xl text-black mb-3"
+        />
+        <button
+          @click="loadMyCode"
+          class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-xl"
+        >
+          Load My Ratings
+        </button>
+        </div>
     </div>
 
     <!-- Compatibility Result -->
@@ -113,7 +120,7 @@
       </p>
 
       <!-- ✅ Radar Chart -->
-      <div class="section-box">
+      <div class="chart-container">
         <Radar v-if="chartReady" :data="chartData" :options="chartOptions" />
       </div>
     </div>
@@ -232,7 +239,7 @@ function compareCodes() {
   );
 
   // ✅ Now compute similarity on mutual subset only
-  matchResult.value = normalizedWeightedCosine(myMutualRatings, friendMutualRatings);
+  matchResult.value = normalizedWeightedCosine(myMutualRatings, friendMutualRatings, STAR_WARS_TITLES.length);
 
   // Chart uses same subset
   chartData.value = {
@@ -369,44 +376,10 @@ h2, h3 {
   box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
 }
 
-/* === RATING ITEMS === */
-.rating-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  border-bottom: 1px solid #444;
-  padding-bottom: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .rating-item {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.rating-item label {
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 input[type="range"] {
   flex-grow: 1;
   cursor: pointer;
   accent-color: #facc15; /* yellow */
-}
-
-.slider-container span {
-  width: 2rem;
-  text-align: right;
-  color: #fbbf24;
 }
 
 /* === TEXT INPUTS === */
@@ -423,6 +396,7 @@ textarea {
 /* === BUTTONS === */
 button {
   padding: 0.5rem 1rem;
+  margin: 5px;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -432,53 +406,6 @@ button {
 
 button:hover {
   opacity: 0.9;
-}
-
-button.yellow {
-  background-color: #facc15;
-  color: #111;
-}
-
-button.dark {
-  background-color: #444;
-  color: #facc15;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-button.glow {
-  background: linear-gradient(90deg, #ffe66d, #ffcc00);
-  color: #111;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: 0 0 15px rgba(255, 230, 109, 0.4);
-}
-
-button.glow:hover {
-  box-shadow: 0 0 25px rgba(255, 230, 109, 0.8);
-  transform: translateY(-1px);
-}
-
-/* === MATCH RESULT === */
-.match-result {
-  text-align: center;
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.match-percent {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  color: #22c55e;
-  text-shadow: 0 0 15px rgba(255, 255, 100, 0.5);
-}
-
-.confidence {
-  color: #aaa;
-  font-size: 0.9rem;
 }
 
 /* === RADAR CHART CONTAINER === */
@@ -508,10 +435,6 @@ body::before {
   text-align: center;
 }
 
-button {
-  margin: 5px;
-}
-
 /* Flex container for side-by-side wrappers */
 .flex-row-wrapper {
   display: flex;
@@ -522,14 +445,21 @@ button {
 }
 
 /* Inner wrapper styling */
-.mycode-wrapper,
-.share-wrapper {
+.inner-box {
   flex: 1 1 45%; /* grow/shrink and default 45% width */
   background-color: rgba(30, 30, 30, 0.7);
   padding: 1rem;
   border-radius: 15px;
   text-align: center;
   box-shadow: 0 5px 10px rgba(255, 215, 0, 0.1);
+}
+
+.compare-load-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 2rem; /* space between the two boxes */
+  flex-wrap: wrap; /* wrap on smaller screens */
 }
 
 /* Labels and code styling */
@@ -586,9 +516,15 @@ button {
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
-  .mycode-wrapper,
-  .share-wrapper {
+  .innerbox {
     flex: 1 1 100%; /* stack vertically on small screens */
+  }
+  .chart-container {
+    padding: 0;
+    margin: 0;
+  }
+  .container {
+    padding: 5px;
   }
 }
 
